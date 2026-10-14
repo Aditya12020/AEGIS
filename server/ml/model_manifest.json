@@ -1,0 +1,18 @@
+{
+  "checkpoint": "server/ml/weights/unet_oilspill.pth",
+  "sha256": "742ce020931cae4b8551159b82b7c9268203da029a6d94bd1d1a97b57cd268fc",
+  "architecture": "U-Net with ResNet-34 encoder",
+  "input_channels": 3,
+  "output_channels": 1,
+  "input_size": {
+    "operational_default": [
+      256,
+      256
+    ],
+    "training_size": "NOT STORED IN CHECKPOINT"
+  },
+  "training_preprocessing": "NOT PROVIDED IN CHECKPOINT",
+  "training_data_representation": "NOT PROVIDED IN CHECKPOINT",
+  "compatibility_status": "MODEL COMPATIBILITY UNVERIFIED",
+  "notes": "Do not enable production Sentinel-1 inference until training representation/preprocessing are independently verified."
+}

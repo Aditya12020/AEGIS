@@ -1,0 +1,280 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Incident {
+  id                    String                 @id @default(cuid())
+  incidentCode          String                 @unique @map("incident_code")
+  name                  String
+  aoiName               String                 @map("aoi_name")
+  minLat                Float                  @map("min_lat")
+  maxLat                Float                  @map("max_lat")
+  minLon                Float                  @map("min_lon")
+  maxLon                Float                  @map("max_lon")
+  centerLat             Float                  @map("center_lat")
+  centerLon             Float                  @map("center_lon")
+  detectionTime         DateTime               @map("detection_time")
+  status                String                 @default("ACTIVE")
+  createdById           String?                @map("created_by_id")
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+
+  createdBy             User?                  @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  investigations        Investigation[]
+  satelliteObservations SatelliteObservation[]
+  driftObservations     DriftObservation[]
+  originEstimates       OriginEstimate[]
+  suspectAnalyses       SuspectAnalysis[]
+  events                InvestigationEvent[]
+  reports               Report[]
+
+  @@map("incidents")
+}
+
+model Investigation {
+  id                      String    @id @default(cuid())
+  incidentId             String    @map("incident_id")
+  status                  String    @default("INITIALIZED")
+  stage                   String    @default("INCIDENT_CREATED")
+  totalVesselsAnalyzed    Int       @default(0) @map("total_vessels_analyzed")
+  vesselsAfterTimeFilter  Int       @default(0) @map("vessels_after_time_filter")
+  vesselsAfterGeofence    Int       @default(0) @map("vessels_after_geofence")
+  trajectoryMatches       Int       @default(0) @map("trajectory_matches")
+  highPriorityCandidates  Int       @default(0) @map("high_priority_candidates")
+  confidenceScore         Float     @default(0.0) @map("confidence_score")
+  startedAt               DateTime  @default(now()) @map("started_at")
+  completedAt             DateTime? @map("completed_at")
+  notes                   String?   @db.Text
+
+  incident                Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("investigations")
+}
+
+model SatelliteObservation {
+  id                    String             @id @default(cuid())
+  incidentId            String             @map("incident_id")
+  sceneId               String             @unique @map("scene_id")
+  satellite             String
+  sensor                String
+  polarization          String
+  acquisitionTime       DateTime           @map("acquisition_time")
+  resolutionMeters      Float              @map("resolution_meters")
+  incidenceAngleDeg     Float              @map("incidence_angle_deg")
+  orbitNumber           Int                @map("orbit_number")
+  orbitDirection        String             @map("orbit_direction")
+  productType           String             @map("product_type")
+  source                String
+  isLiveRealData        Boolean            @default(true) @map("is_live_real_data")
+  provenanceDetails     String?            @db.Text @map("provenance_details")
+  createdAt             DateTime           @default(now()) @map("created_at")
+
+  incident              Incident           @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  spillObservations     SpillObservation[]
+
+  @@map("satellite_observations")
+}
+
+model SpillObservation {
+  id                    String                @id @default(cuid())
+  satelliteObsId        String                @map("satellite_obs_id")
+  detectionTime         DateTime              @map("detection_time")
+  areaKm2               Float                 @map("area_km2")
+  confidencePercent     Float                 @map("confidence_percent")
+  centroidLat           Float                 @map("centroid_lat")
+  centroidLon           Float                 @map("centroid_lon")
+  polygonGeoJson        String                @db.MediumText @map("polygon_geojson")
+  thicknessMinMicrons   Float                 @map("thickness_min_microns")
+  thicknessMaxMicrons   Float                 @map("thickness_max_microns")
+  modelArchitecture     String                @map("model_architecture")
+  provenanceLabel       String                @default("MODEL OUTPUT") @map("provenance_label")
+  isModelOutput         Boolean               @default(true) @map("is_model_output")
+  createdAt             DateTime              @default(now()) @map("created_at")
+
+  satelliteObservation  SatelliteObservation  @relation(fields: [satelliteObsId], references: [id], onDelete: Cascade)
+
+  @@map("spill_observations")
+}
+
+model AISVessel {
+  id            String         @id @default(cuid())
+  mmsi          String         @unique
+  imo           String?
+  vesselName    String         @map("vessel_name")
+  vesselType    String         @map("vessel_type")
+  flag          String?
+  callSign      String?        @map("call_sign")
+  length        Float?
+  width         Float?
+  draft         Float?
+  cargo         String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  positions     AISPosition[]
+  suspectScores SuspectAnalysis[]
+
+  @@map("ais_vessels")
+}
+
+model AISPosition {
+  id          String    @id @default(cuid())
+  mmsi        String
+  timestamp   DateTime
+  latitude    Float
+  longitude   Float
+  speedKnots  Float     @map("speed_knots")
+  courseDeg   Float     @map("course_deg")
+  headingDeg  Float     @map("heading_deg")
+  source      String    @default("Access AIS")
+
+  vessel      AISVessel @relation(fields: [mmsi], references: [mmsi], onDelete: Cascade)
+
+  @@index([mmsi, timestamp])
+  @@index([latitude, longitude])
+  @@map("ais_positions")
+}
+
+model DriftObservation {
+  id                         String    @id @default(cuid())
+  incidentId                 String    @map("incident_id")
+  calculationTime            DateTime  @default(now()) @map("calculation_time")
+  netDriftSpeedKnots         Float     @map("net_drift_speed_knots")
+  netDriftDirectionDeg       Float     @map("net_drift_direction_deg")
+  currentSpeedKnots          Float     @map("current_speed_knots")
+  currentDirectionDeg        Float     @map("current_direction_deg")
+  windSpeedKnots             Float     @map("wind_speed_knots")
+  windDirectionDeg           Float     @map("wind_direction_deg")
+  currentContributionPercent Float     @map("current_contribution_percent")
+  windContributionPercent    Float     @map("wind_contribution_percent")
+  leewayFactor               Float     @default(0.032) @map("leeway_factor")
+  projectionsJson            String    @db.MediumText @map("projections_json")
+  nearestCoastName           String?   @map("nearest_coast_name")
+  nearestCoastDistKm         Float?    @map("nearest_coast_dist_km")
+  threatWindowHours          Int?      @map("threat_window_hours")
+  confidence                 Float     @default(91.4)
+  provenanceLabel            String    @default("DERIVED / COMPUTED") @map("provenance_label")
+  isDerived                  Boolean   @default(true) @map("is_derived")
+  methodology                String    @db.Text
+
+  incident                   Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("drift_observations")
+}
+
+model OriginEstimate {
+  id                    String    @id @default(cuid())
+  incidentId            String    @map("incident_id")
+  originLat             Float     @map("origin_lat")
+  originLon             Float     @map("origin_lon")
+  probabilityPercent    Float     @map("probability_percent")
+  releaseStartTime      DateTime  @map("release_start_time")
+  releaseEndTime        DateTime  @map("release_end_time")
+  backwardDistanceKm    Float     @map("backward_distance_km")
+  backwardBearingDeg    Float     @map("backward_bearing_deg")
+  uncertaintyRadiusKm   Float     @map("uncertainty_radius_km")
+  monteCarloParticles   Int       @default(10000) @map("monte_carlo_particles")
+  convergencePercent    Float     @default(91.4) @map("convergence_percent")
+  depthMeters           Float     @default(112.0) @map("depth_meters")
+  corridorPointsJson    String    @db.MediumText @map("corridor_points_json")
+  methodology           String    @db.Text
+  provenanceLabel       String    @default("DERIVED / COMPUTED") @map("provenance_label")
+  isDerived             Boolean   @default(true) @map("is_derived")
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  incident              Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("origin_estimates")
+}
+
+model SuspectAnalysis {
+  id                  String     @id @default(cuid())
+  incidentId          String     @map("incident_id")
+  mmsi                String
+  rank                Int        @default(1)
+  overallScore        Int        @map("overall_score")
+  proximityScore      Int        @map("proximity_score")
+  timeMatchScore      Int        @map("time_match_score")
+  trajectoryScore     Int        @map("trajectory_score")
+  speedAnomalyScore   Int        @map("speed_anomaly_score")
+  routeDeviationScore Int        @map("route_deviation_score")
+  closestDistanceKm   Float?     @map("closest_distance_km")
+  closestTime         DateTime   @map("closest_time")
+  timeDiffMinutes     Int        @map("time_diff_minutes")
+  speedDropKnots      Float      @default(0.0) @map("speed_drop_knots")
+  courseDeviationDeg  Float      @default(0.0) @map("course_deviation_deg")
+  aisBlackoutMinutes  Int        @default(0) @map("ais_blackout_minutes")
+  narrative           String     @db.Text
+  provenanceLabel     String     @default("MODEL OUTPUT / COMPUTED") @map("provenance_label")
+  createdAt           DateTime   @default(now()) @map("created_at")
+
+  incident            Incident   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  vessel              AISVessel  @relation(fields: [mmsi], references: [mmsi], onDelete: Cascade)
+  evidenceList        Evidence[]
+
+  @@unique([incidentId, mmsi])
+  @@map("suspect_analyses")
+}
+
+model Evidence {
+  id                String          @id @default(cuid())
+  suspectAnalysisId String          @map("suspect_analysis_id")
+  category          String
+  title             String
+  description       String          @db.Text
+  scoreImpact       Int             @map("score_impact")
+  provenance        String          @db.Text
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  suspectAnalysis   SuspectAnalysis @relation(fields: [suspectAnalysisId], references: [id], onDelete: Cascade)
+
+  @@map("evidence_items")
+}
+
+model InvestigationEvent {
+  id          String   @id @default(cuid())
+  incidentId  String   @map("incident_id")
+  stage       String
+  title       String
+  description String   @db.Text
+  status      String   @default("COMPLETED")
+  timestamp   DateTime @default(now())
+
+  incident    Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("investigation_events")
+}
+
+model Report {
+  id                String   @id @default(cuid())
+  incidentId        String   @map("incident_id")
+  reportNumber      String   @unique @map("report_number")
+  generatedAt       DateTime @default(now()) @map("generated_at")
+  executiveSummary  String   @db.Text @map("executive_summary")
+  legalDossierJson  String   @db.MediumText @map("legal_dossier_json")
+  provenanceSummary String   @db.Text @map("provenance_summary")
+  status            String   @default("FINAL")
+
+  incident          Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  name         String
+  badgeNumber  String?     @map("badge_number")
+  passwordHash String      @map("password_hash")
+  role         String      @default("USER")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  incidents    Incident[]
+
+  @@map("users")
+}

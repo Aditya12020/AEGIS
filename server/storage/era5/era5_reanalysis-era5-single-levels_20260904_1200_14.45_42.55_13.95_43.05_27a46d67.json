@@ -1,0 +1,41 @@
+{
+  "status": "SUCCESS",
+  "provider": "Copernicus Climate Change Service (C3S)",
+  "dataset": "reanalysis-era5-single-levels",
+  "timestamp": "2026-09-04T12:00:00Z",
+  "latitude": 14.2,
+  "longitude": 42.8,
+  "area_requested": {
+    "north": 14.45,
+    "west": 42.55,
+    "south": 13.95,
+    "east": 43.05
+  },
+  "variables": [
+    "10m_u_component_of_wind",
+    "10m_v_component_of_wind",
+    "2m_temperature",
+    "surface_pressure",
+    "total_precipitation"
+  ],
+  "u10": 5.185,
+  "v10": -3.193,
+  "windSpeedKnots": 11.84,
+  "windSpeedMs": 6.09,
+  "windDirectionDeg": 301.6,
+  "units": {
+    "u10": "m s-1",
+    "v10": "m s-1",
+    "windSpeedKnots": "knots",
+    "windSpeedMs": "m s-1",
+    "windDirectionDeg": "degrees",
+    "temperatureC": "celsius",
+    "surfacePressureHpa": "hPa",
+    "totalPrecipitationMm": "mm"
+  },
+  "temperatureC": 32.47,
+  "surfacePressureHpa": 1001.8,
+  "totalPrecipitationMm": 0.0,
+  "cached": false,
+  "storagePath": "C:\\Users\\LENOVO\\Downloads\\AEGIS\\project\\server\\storage\\era5\\era5_reanalysis-era5-single-levels_20260904_1200_14.45_42.55_13.95_43.05_27a46d67.nc"
+}
