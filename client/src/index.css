@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #050505;
+    color: #F5F2EA;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-6 py-3 bg-[#E85D04] text-black font-semibold tracking-wide text-sm
+           transition-all duration-200 hover:bg-[#FF7A30] active:scale-[0.98] cursor-pointer;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 border border-[#333] text-[#9B9891] text-sm
+           transition-all duration-200 hover:border-[#E85D04] hover:text-[#F5F2EA] cursor-pointer;
+  }
+  .surface {
+    @apply bg-[#111] border border-[#222];
+  }
+  .tag-derived {
+    @apply inline-block px-2 py-0.5 text-[10px] font-mono tracking-widest text-[#9B9891] border border-[#333] uppercase;
+  }
+  .tag-model {
+    @apply inline-block px-2 py-0.5 text-[10px] font-mono tracking-widest text-[#E85D04] border border-[#E85D04]/40 bg-[#E85D04]/5 uppercase;
+  }
+  .tag-observed {
+    @apply inline-block px-2 py-0.5 text-[10px] font-mono tracking-widest text-[#4ade80] border border-[#4ade80]/40 bg-[#4ade80]/5 uppercase;
+  }
+  .tag-historical {
+    @apply inline-block px-2 py-0.5 text-[10px] font-mono tracking-widest text-[#38bdf8] border border-[#38bdf8]/40 bg-[#38bdf8]/5 uppercase;
+  }
+  .tag-demo {
+    @apply inline-block px-2 py-0.5 text-[10px] font-mono tracking-widest text-[#c084fc] border border-[#c084fc]/40 bg-[#c084fc]/10 uppercase;
+  }
+  .tag-provider-error {
+    @apply inline-block px-2 py-0.5 text-[10px] font-mono tracking-widest text-[#fb7185] border border-[#fb7185]/40 bg-[#fb7185]/10 uppercase;
+  }
+  .tag-unavailable {
+    @apply inline-block px-2 py-0.5 text-[10px] font-mono tracking-widest text-[#ef4444] border border-[#ef4444]/30 bg-[#ef4444]/5 uppercase;
+  }
+  .section-label {
+    @apply text-[11px] font-mono tracking-[0.2em] text-[#9B9891] uppercase mb-3;
+  }
+  .unavailable-state {
+    @apply flex flex-col items-center justify-center py-16 text-center;
+  }
+}
+
+/* Leaflet dark overrides */
+.leaflet-container {
+  background: #050505 !important;
+  font-family: 'JetBrains Mono', monospace;
+}
+.leaflet-tile-pane { filter: brightness(0.7) saturate(0.3); }
+.leaflet-popup-content-wrapper {
+  background: #111 !important;
+  border: 1px solid #333 !important;
+  border-radius: 0 !important;
+  color: #F5F2EA !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8) !important;
+}
+.leaflet-popup-tip { background: #111 !important; }
+.leaflet-control-zoom a {
+  background: #111 !important;
+  border-color: #333 !important;
+  color: #9B9891 !important;
+}
+.leaflet-control-attribution { display: none; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #050505; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #E85D04; }
